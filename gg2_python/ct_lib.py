@@ -59,7 +59,7 @@ def get_full_path(storage_directory, file_name):
 	return full_path
 
 def create_figure(data, map, caxis = None):
-	fig, ax = plt.subplots()
+	fig, ax = plt.subplots(figsize=(20,20))
 
 	# equal aspect ratio
 	plt.axis('off') # no axes

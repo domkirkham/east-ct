@@ -5,7 +5,7 @@ from back_project import back_project
 from hu import *
 
 
-def scan_and_reconstruct(photons, material, phantom, scale, angles, max_freq, mas=10000, alpha=0.001):
+def scan_and_reconstruct(photons, material, phantom, scale, angles, mas=10000, alpha=0.001):
     """ Simulation of the CT scanning process
         reconstruction = scan_and_reconstruct(photons, material, phantom, scale, angles, mas, alpha)
         takes the phantom data in phantom (samples x samples), scans it using the
@@ -22,7 +22,7 @@ def scan_and_reconstruct(photons, material, phantom, scale, angles, max_freq, ma
     calib_sinogram = ct_calibrate(photons, material, sinogram, scale)
 
     # Ram-Lak
-    calib_filtered_sinogram = ramp_filter(calib_sinogram, scale, max_freq)
+    calib_filtered_sinogram = ramp_filter(calib_sinogram, scale)
 
     # Back-projection
     reconstruction = back_project(calib_filtered_sinogram)

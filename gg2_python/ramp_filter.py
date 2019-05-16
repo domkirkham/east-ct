@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-def ramp_filter(sinogram, scale, max_freq, alpha=0.001):
+def ramp_filter(sinogram, scale, alpha=0.001):
     """ Ram-Lak filter with raised-cosine for CT reconstruction
 
     fs = ramp_filter(sinogram, scale) filters the input in sinogram (angles x samples)
@@ -21,12 +21,10 @@ def ramp_filter(sinogram, scale, max_freq, alpha=0.001):
     m = np.floor(np.log(n) / np.log(2) + 2)
     m = int(2 ** m)
 
-    # Linear function set up for filter
-    filter_freqs = np.linspace(-m/2, m/2, m)
+    max_freq = np.pi/scale
 
-    # Truncate the linear filter at chosen values of w_max (NOT NECESSARY)
-    # filter_freqs[0:int(max_freq)] = 0
-    # filter_freqs[-int(max_freq):] = 0
+    # Linear function set up for filter
+    filter_freqs = np.linspace(-max_freq, max_freq, m)
 
     # Take the absolute value divided by 2*pi to give the Ram-Lak filter
     trunc_filter = abs(filter_freqs)/(2*np.pi)
@@ -34,13 +32,16 @@ def ramp_filter(sinogram, scale, max_freq, alpha=0.001):
     # Flip the filter halves to match how the FFT is produced (0->positive, negative->0)
     trunc_filter = np.concatenate((trunc_filter[int(m/2):], trunc_filter[0:int(m/2)]))
 
+    print(trunc_filter)
+    plt.plot(trunc_filter)
+
     print('Ramp filtering...')
 
     # FFT the current sinogram in the r direction for all angles, with zero padding to match filter length
-    current_fft = np.fft.fft(sinogram, axis=0, n=m)
+    current_fft = np.fft.fft(sinogram, axis=1, n=m)
     # Apply the filter to all FFTs
-    filtered_fft = np.multiply(trunc_filter, current_fft.T)
+    filtered_fft = current_fft * trunc_filter[np.newaxis, :]
     # Invert the now filtered FFTs, setting the length back to the original input length
-    filtered_sinogram = np.fft.ifft(filtered_fft.T, axis=0)[0:angles]
+    filtered_sinogram = np.fft.ifft(filtered_fft, axis=1)[:, :n]
 
-    return abs(filtered_sinogram)
+    return np.real(filtered_sinogram)
