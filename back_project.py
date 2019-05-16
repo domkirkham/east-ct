@@ -12,7 +12,7 @@ def back_project(sinogram, skip=1):
     samples)"""
 
     # get input dimensions
-    ns = sinogram.shape[1]
+    ns = sinogram.shape[1]  # num. samples
     angles = sinogram.shape[0]
     n = int(math.floor((ns - 1) // skip) + 1)
 
@@ -33,7 +33,9 @@ def back_project(sinogram, skip=1):
 
         # interpolate and add this data to output
         # remembering to multiply by dtheta as well as sum
-        x2 = scipy.interpolate.interp1d(np.arange(0, ns, 1), sinogram[angle], kind='linear', copy=False,
+
+        # interp1d returns a function that interpolates inbetween the values given by x,y
+        x2 = scipy.interpolate.interp1d(x=np.arange(0, ns, 1), y=sinogram[angle], kind='linear', copy=False,
                                         assume_sorted=True, bounds_error=False, fill_value=0, axis=0)
         reconstruction = reconstruction + x2(x0) * (math.pi / angles)
 

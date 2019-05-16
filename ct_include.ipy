@@ -3,8 +3,8 @@
 # `%run ct_include.ipy`
 
 #######import files - add new python imports here#######
-from material import *
-from source import *
+from material_data import *
+from photonsource_data import *
 from photons import *
 from ct_detect import *
 from fake_source import *
@@ -23,8 +23,8 @@ import math
 import pydicom
 
 #######create object instances#######
-material = Material()
-source = Source()
+material_data = MaterialData()
+source_data = PhotonSourceData()
 
 #######reload all modules every time before executing the typed python code#######
 %load_ext autoreload

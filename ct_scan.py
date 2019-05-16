@@ -6,18 +6,18 @@ import math
 import sys
 
 
-def ct_scan(photons, material, phantom, scale, angles, mas=10000):
+def ct_scan(photons_source, material_data, phantom, scale, angles, mas=10000, interpolation_order: int = 1):
     """simulate CT scanning of an object
     scan = ct_scan(photons, material, phantom, scale, angles, mas) takes a phantom
     which contains indices relating to the attenuation coefficients given in
-    material.coeffs, and scans it using source energy photons, with given angles and
+    material_data.coeffs, and scans it using source energy photons, with given angles and
     current-time product mas.
 
     scale is the pixel size of the input array phantom, in cm per pixel.
     """
 
     # find the coefficients for air
-    air = material.name.index('Air')
+    air = material_data.names.index('Air')
 
     # get input image dimensions, and create a coordinate structure
     n = max(phantom.shape)
@@ -27,7 +27,7 @@ def ct_scan(photons, material, phantom, scale, angles, mas=10000):
     # material phantoms for each of these, except for air
     materials = []
     material_phantom = []
-    for m in range(0, len(material.coeffs)):
+    for m in range(0, len(material_data.coeffs)):
         z0 = (phantom == m).astype(int)
         if (m != air) & (z0.sum() > 0):
             materials.append(m)
@@ -45,10 +45,11 @@ def ct_scan(photons, material, phantom, scale, angles, mas=10000):
         y0 = xi * math.sin(p) + yi * math.cos(p) + (n / 2)
 
         # For each material, add up how many pixels contain this on each ray
-        depth = np.zeros((len(material.coeffs), n))
+        depth = np.zeros((len(material_data.coeffs), n))
 
         for index, m in enumerate(materials):
-            interpolated = scipy.ndimage.map_coordinates(material_phantom[index], [y0, x0], order=1, mode='constant',
+            interpolated = scipy.ndimage.map_coordinates(material_phantom[index], [y0, x0], order=interpolation_order,
+                                                         mode='constant',
                                                          prefilter=False)
             depth[m] = np.sum(interpolated, axis=0)
 
@@ -60,11 +61,10 @@ def ct_scan(photons, material, phantom, scale, angles, mas=10000):
         # diameter of circle taken to be twice the phantom side length
         depth[air] = 2 * n - np.sum(depth, axis=0)
 
-        # scale the depth appropriately and calculate detections for this set of
-        # materials
+        # scale the depth appropriately
         depth *= scale
-
-        scan[angle] = ct_detect(photons, material.coeffs, depth, mas)
+        # calculate detections for this set of materials
+        scan[angle] = ct_detect(photons_source, material_data.coeffs, depth, mas)
 
     sys.stdout.write("\n")
 

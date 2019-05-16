@@ -2,8 +2,9 @@ import numpy as np
 import math
 
 
-def fake_source(mev, mvp, coeff=None, thickness=0, method='normal'):
-    """ fake_source can generate typical CT X-ray source energies
+def fake_source(mev, mvp, coeff=None, thickness: float = 0, method='normal'):
+    """
+    Fake_source can generate typical CT X-ray source energies.
 
     fake_source((mev, mvp, coeffs, thickness) creates a vector y of photons per
     cm^2 per keV, at the energies given by the vector mev and for a source
@@ -20,13 +21,11 @@ def fake_source(mev, mvp, coeff=None, thickness=0, method='normal'):
     energies = len(mev)
 
     if method == 'ideal':
-
         # single energy, at about the peak of the broader energy radiation
         source = np.zeros(energies)
         source[np.where(np.abs(mev - mvp * 0.7) < 0.001)] = 1e10
 
-    else:
-
+    elif method == 'normal':
         # experimental function to match expected form of source radiation
         alpha = 100
         sigma = mvp / 2
@@ -43,6 +42,8 @@ def fake_source(mev, mvp, coeff=None, thickness=0, method='normal'):
                 source[index] = source[index] * pow((mvp - value) / (0.2 * mvp), .3)
 
         source = source * 1.5e9
+    else:
+        raise ValueError(f'{method} is not a valid method parameter for fake_source')
 
     # add any additional metal filter
     if coeff is not None:

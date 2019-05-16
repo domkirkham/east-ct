@@ -3,7 +3,7 @@ import numpy.matlib
 import math
 
 
-def phantom(ellipses, n):
+def create_phantom(ellipses, n):
     """generates an artificial phantom given ellipse parameters and size n"""
 
     # convert to numpy array
@@ -38,7 +38,7 @@ def phantom(ellipses, n):
     return phantom_instance
 
 
-def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
+def ct_phantom(names, n_pixels: int, type: int, metal: str = 'Titanium'):
     """ ct_phantom create phantom for CT scanning
         x = ct_phantom(names, n, type, metal) creates a CT phantom in x of
         size (n X n), and type given by type:
@@ -70,7 +70,7 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
 
         # simple circle for looking at calibration
         t = [1, 0.75, 0.75, 0.0, 0.0, 0]
-        x = phantom(t, n)
+        x = create_phantom(t, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value >= 1:
@@ -79,16 +79,15 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
     elif type == 2:
 
         # impulse for looking at resolution
-        x = np.zeros((n, n))
-        x[int(n / 2 + point_offset[0])][int(n / 2 + point_offset[1])] = tissue
+        x = np.zeros((n_pixels, n_pixels))
+        x[int(n_pixels / 2)][int(n_pixels / 2)] = tissue
 
     else:
-
         # This creates a generic human hip cross-section
         t = [[1, 0.57, 0.52, -0.35, 0.1, 0],
              [1, 0.57, 0.52, 0.35, 0.1, 0],
              [1, 0.52, 0.45, 0, -0.08, 0]]
-        x = phantom(t, n)
+        x = create_phantom(t, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value >= 1:
@@ -97,7 +96,7 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
         a = [[1, 0.55, 0.5, -0.35, 0.1, 0],
              [1, 0.55, 0.5, 0.35, 0.1, 0],
              [1, 0.5, 0.43, 0, -0.08, 0]]
-        x = x + phantom(a, n)
+        x += create_phantom(a, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value > tissue:
@@ -108,7 +107,7 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
              [1, 0.24, 0.16, -0.3, 0.28, 20],
              [1, 0.24, 0.16, 0.3, 0.28, -20],
              [1, 0.4, 0.2, 0, -0.15, 0]]
-        x = x + phantom(t, n)
+        x += create_phantom(t, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value > adipose:
@@ -126,7 +125,7 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
              [-1, 0.07, 0.06, 0.25, 0.25, -140],
              [1, 0.18, 0.05, 0.05, -0.15, -100],
              [-1, 0.14, 0.03, 0.05, -0.15, -100]]
-        x = x + phantom(b, n)
+        x = x + create_phantom(b, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value > tissue:
@@ -159,7 +158,7 @@ def ct_phantom(names, n, type, metal='Titanium', point_offset=False):
                      [100, 0.025, 0.025, -0.3, 0.25, 0],
                      [100, 0.025, 0.025, -0.2, 0.25, 0]]
 
-            x = x + phantom(m, n)
+            x = x + create_phantom(m, n_pixels)
 
             for index, value in np.ndenumerate(x):
                 if value > bone:
