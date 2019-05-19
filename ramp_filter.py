@@ -45,12 +45,12 @@ def get_ramlak(scale, n_samples: int, alpha: float):
     halfpoint = int(n_samples / 2)
 
     # Fill the first half of the ramlak array with correct values
-    omega = np.linspace(0, omega_0 / 2, halfpoint, endpoint=False)
-    ramlak[:halfpoint] = (omega / (2 * np.pi)) * np.cos((omega / omega_0) * (np.pi / 2))**alpha
+    omega = np.linspace(0, omega_0 / 2, halfpoint + 1, endpoint=False)
+    ramlak[:halfpoint + 1] = (omega / (2 * np.pi)) * np.cos((omega / omega_0) * (np.pi / 2))**alpha
     # Fix the value at zero
     ramlak[0] = (delta_omega / (8 * np.pi))
 
     # Fill the second half of the ramlak array with the mirrored values from the first half
-    ramlak[halfpoint:] = np.flip(ramlak[:halfpoint])
+    ramlak[halfpoint + 1:] = np.flip(ramlak[1:halfpoint])
 
     return ramlak
