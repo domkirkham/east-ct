@@ -11,5 +11,5 @@ def test_filter_values():
     k = 7
     test_fft = np.ones((2**k, 2**k))
     filter_test = ramp_filter(test_fft, 0.1, 2**k)
-    for i in range(2**(k-1)):
-        assert np.all(filter_test[i] == filter_test[-(i + 1)])
+    for i in range(2**(k-1) - 1):
+        assert np.all(filter_test[i + 1] == filter_test[-(i + 1)])
