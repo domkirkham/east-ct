@@ -29,8 +29,9 @@ def scan_and_reconstruct(photon_source, material_data, phantom, scale, angles, m
     backprojection = back_project(filtered_sinogram)
 
     # todo: convert to Hounsfield Units
+    hounsfield = hu(photon_source, material_data, backprojection, scale)
 
-    return backprojection
+    return hounsfield
 
 
 def scan_and_backproject(photon_source, material_data, phantom, scale, angles, mas=10000, alpha=0.001):
