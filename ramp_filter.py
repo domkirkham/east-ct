@@ -46,7 +46,7 @@ def get_ramlak(scale, n_samples: int, alpha: float):
 
     # Fill the first half of the ramlak array with correct values
     omega = np.linspace(0, omega_0 / 2, halfpoint + 1, endpoint=False)
-    ramlak[:halfpoint + 1] = (omega / (2 * np.pi)) * np.cos((omega / omega_0) * (np.pi / 2))**alpha
+    ramlak[:halfpoint + 1] = (omega / (2 * np.pi)) * np.cos((omega / omega_0) * (np.pi))**alpha
     # Fix the value at zero
     ramlak[0] = (delta_omega / (8 * np.pi))
 

@@ -105,7 +105,17 @@ venv.bak/
 
 .idea
 *.png
+Week1.ipynb
 *.gif
 figures
 notebooks
 
+ed_interim.ipynb
+first_report_bruno_part.ipynb
+.DS_Store
+Untitled.ipynb
+ed_week1.ipynb
+ed_week3.ipynb
+gg2_python/
+raw_data_a.rsq
+test_1_0001.dcm
