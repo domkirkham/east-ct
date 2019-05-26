@@ -3,10 +3,10 @@ import math
 from typing import List, Optional, Union
 
 
-def simulate_photons(original_energy, coeff, depth: Union[float, np.ndarray]) -> np.ndarray:
+def simulate_photons(original_energy, coeff, depth: Union[float, np.ndarray], model_noise=False) -> np.ndarray:
     """
-    Calculates residual energy for a particular material and depth
-    photons(original_energy, coeff, depth, mas) takes the original_energy
+    Calculates residual energy for a particular material and depth.
+    simulate_photons(original_energy, coeff, depth, mas) takes the original_energy
     (energy, samples) and works out the residual_energy (energy, samples)
     for a particular material with linear attenuation coefficients given
     by coeff (n_energies), and a set of depths given by depth (samples)
@@ -47,7 +47,11 @@ def simulate_photons(original_energy, coeff, depth: Union[float, np.ndarray]) ->
     if len(depth) != n_samples:
         raise ValueError('input depth has different number of samples to input original_energy')
 
-    # Work out residual energy for each depth and at each energy
-    residual_energy = original_energy * np.exp(-np.outer(coeff, depth))
+    # Work out residual photons for each depth and at each energy
+    residual_photons = original_energy * np.exp(-np.outer(coeff, depth))
 
-    return residual_energy
+    if model_noise:
+        # Transmission Noise
+        residual_photons = np.random.poisson(residual_photons)
+
+    return residual_photons

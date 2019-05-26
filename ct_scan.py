@@ -6,7 +6,8 @@ import math
 import sys
 
 
-def ct_scan(photons_source, material_data, phantom, scale, angles, mas=10000, interpolation_order: int = 1):
+def ct_scan(photons_source, material_data, phantom, scale, angles, mas=10000, interpolation_order: int = 1,
+            fixed_noise_level: float = 1.0, scatter_noise_level: float = 0.3, model_noise=False):
     """simulate CT scanning of an object
     scan = ct_scan(photons, material, phantom, scale, angles, mas) takes a phantom
     which contains indices relating to the attenuation coefficients given in
@@ -64,7 +65,8 @@ def ct_scan(photons_source, material_data, phantom, scale, angles, mas=10000, in
         # scale the depth appropriately
         depth *= scale
         # calculate detections for this set of materials
-        scan[angle] = ct_detect(photons_source, material_data.coeffs, depth, mas)
+        scan[angle] = ct_detect(photons_source, material_data.coeffs, depth, mas, fixed_noise_level=fixed_noise_level,
+                                scatter_noise_level=scatter_noise_level, model_noise=model_noise)
 
     sys.stdout.write("\n")
 

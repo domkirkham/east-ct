@@ -4,7 +4,8 @@ from photonsource_data import PhotonSourceData
 from material_data import MaterialData
 
 
-def ct_detect(photon_source: np.ndarray, coeffs, depth, mas=10000) -> np.ndarray:
+def ct_detect(photon_source: np.ndarray, coeffs, depth, mas=10000, fixed_noise_level=0.0, scatter_noise_level=0.0,
+              model_noise=False) -> np.ndarray:
     """
     ct_detect returns detector photons for given material depths.
     y = ct_detect(p, coeffs, depth, mas) takes a source energy
@@ -54,12 +55,17 @@ def ct_detect(photon_source: np.ndarray, coeffs, depth, mas=10000) -> np.ndarray
 
     # calculate array of residual mev x samples for each material in turn
     for m in range(n_materials):
-        detector_photons = simulate_photons(detector_photons, coeffs[m], depth[m])
+        detector_photons = simulate_photons(detector_photons, coeffs[m], depth[m], model_noise=model_noise)
 
     # sum this over energies
     detector_photons = np.sum(detector_photons, axis=0)
 
-    # todo: model noise
+    # todo: Model noise:
+    # Scattering Noise
+    if model_noise:
+        scattering_noise = np.random.poisson(fixed_noise_level + scatter_noise_level * np.sum(photon_source),
+                                             size=detector_photons.shape)
+        detector_photons += scattering_noise
 
     # minimum detection is one photon
     detector_photons = np.clip(detector_photons, 1., None)
