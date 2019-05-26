@@ -7,6 +7,7 @@ import sys
 from ramp_filter import *
 from back_project import *
 from create_dicom import *
+from ct_calibrate import *
 
 
 class Xtreme(object):
@@ -264,7 +265,31 @@ class Xtreme(object):
                     if (scan < self.scans):
                         # reconstruct scan
 
+                        # return fan based sinogram from each scan
+                        f, f_min, f_max = self.get_rsq_slice(100);
+
+                        # subtract background radiation
+                        f -= np.tile(f_min, f.shape[0])
+
+
+                        # turn fan based sinogram into equivalent parallel based sinogram
+                        p = self.fan_to_parallel(f)
+
+                        # convert detector values into calibrated attenuation values
+                        total_attenuation = -np.log(p/ np.tile(f_max, p.shape[0]))
+
+                        # Ram-Lak - scale?
+                        filtered_sinogram = ramp_filter(total_attenuation, scale=self.scale * 0.1, alpha=0.001)
+
+                        # Back-projection
+                        backprojection = back_project(filtered_sinogram)
+
+                        # convert to Hounsfield units - will need to change function
+                        hounsfield = hu(photon_source, material_data, backprojection, scale)
+
+
                         # save as dicom file
+
                         z += 1
 
         return
