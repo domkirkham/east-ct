@@ -8,6 +8,9 @@ from ramp_filter import *
 from back_project import *
 from create_dicom import *
 from ct_calibrate import *
+from fake_source import *
+from material_data import *
+from hu import *
 
 
 class Xtreme(object):
@@ -94,6 +97,7 @@ class Xtreme(object):
 
             self.data_offset = h[123]
             self.filename = file
+            self.source_energy = 0.06
 
             f.close()
 
@@ -226,7 +230,7 @@ class Xtreme(object):
 
         return Y
 
-    def reconstruct_all(self, file, method=None, alpha=None):
+    def reconstruct_all(self, file, material_data, method=None, alpha=None):
 
         """ reconstruct_all( FILENAME, ALPHA ) creates a series of DICOM
         files for the Xtreme RSQ data. FILENAME is the base file name for
@@ -251,6 +255,27 @@ class Xtreme(object):
         studyuid = pydicom.uid.generate_uid()
         time = datetime.datetime.now()
 
+        # create fake source to convert to Hounsfield units
+        fake = fake_source(material_data.mev, self.source_energy)
+
+        # find attenuation of water for conversion
+        n_samples = self.samples
+
+        # Width of the scanned area is twice the width of the phantom:
+        max_width = 20  # Width of the scanned area
+
+        # The calibration attenuation is same at every point -> just use a single scan of water phantom
+
+        water_residual = ct_detect(fake, material_data.coeff('Water'), depth=max_width)
+
+        # put this through the same calibration process as the normal CT data
+        air_scan = ct_detect(fake, material_data.coeff("Air"), max_width)
+
+        path_atten = -np.log(water_residual / air_scan)
+
+        water_atten = path_atten / max_width
+        print(f'Water atten = {water_atten}')
+
         # main loop over each z-fan
         for fan in range(0, self.scans, self.fan_scans):
             if method is 'fdk':
@@ -266,17 +291,20 @@ class Xtreme(object):
                         # reconstruct scan
 
                         # return fan based sinogram from each scan
-                        f, f_min, f_max = self.get_rsq_slice(100);
+                        f, f_min, f_max = self.get_rsq_slice(scan);
 
                         # subtract background radiation
-                        f -= np.tile(f_min, f.shape[0])
+                        f = f - np.tile(f_min, (f.shape[0], 1))
 
 
                         # turn fan based sinogram into equivalent parallel based sinogram
                         p = self.fan_to_parallel(f)
 
+                        # clip p to 1
+                        p = np.clip(p, a_min=1, a_max=None)
+
                         # convert detector values into calibrated attenuation values
-                        total_attenuation = -np.log(p/ np.tile(f_max, p.shape[0]))
+                        total_attenuation = -np.log(p/ np.tile(np.clip(f_max,a_min=1, a_max=None), (p.shape[0],1)))
 
                         # Ram-Lak - scale?
                         filtered_sinogram = ramp_filter(total_attenuation, scale=self.scale * 0.1, alpha=0.001)
@@ -285,10 +313,12 @@ class Xtreme(object):
                         backprojection = back_project(filtered_sinogram)
 
                         # convert to Hounsfield units - will need to change function
-                        hounsfield = hu(photon_source, material_data, backprojection, scale)
+                        hounsfield = ((backprojection/water_atten) - 1.0) * 1000
 
 
                         # save as dicom file
+                        create_dicom(hounsfield, filename=file, sp=self.scale, sz=self.scale, f=z, study_uid=studyuid, series_uid=seriesuid)
+
 
                         z += 1
 
