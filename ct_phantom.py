@@ -38,7 +38,7 @@ def create_phantom(ellipses, n):
     return phantom_instance
 
 
-def ct_phantom(names, n_pixels: int, type: int, metal: str = 'Titanium'):
+def ct_phantom(names, n_pixels: int, type: int, metal: str = 'Titanium', offset: tuple = (0, 0)):
     """ ct_phantom create phantom for CT scanning
         x = ct_phantom(names, n, type, metal) creates a CT phantom in x of
         size (n X n), and type given by type:
@@ -69,18 +69,18 @@ def ct_phantom(names, n_pixels: int, type: int, metal: str = 'Titanium'):
     if type == 1:
 
         # simple circle for looking at calibration
-        t = [1, 0.75, 0.75, 0.0, 0.0, 0]
+        t = [1, 0.75, 0.75, int(offset[0])/n_pixels, int(offset[1])/n_pixels, 0]
         x = create_phantom(t, n_pixels)
 
         for index, value in np.ndenumerate(x):
             if value >= 1:
-                x[index] = tissue
+                x[index] = nmetal
 
     elif type == 2:
 
         # impulse for looking at resolution
         x = np.zeros((n_pixels, n_pixels))
-        x[int(n_pixels / 2)][int(n_pixels / 2)] = tissue
+        x[int(n_pixels / 2) + int(offset[0])][int(n_pixels / 2) + int(offset[0])] = tissue
 
     else:
         # This creates a generic human hip cross-section
